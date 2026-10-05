@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+vdem.RData
+.DS_Store

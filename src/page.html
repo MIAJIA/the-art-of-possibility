@@ -1,0 +1,740 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>政治坐标系｜读《可能性的艺术》</title>
+<meta name="description" content="把刘瑜《可能性的艺术》里的两个维度做成一张可以交互的图：179 个国家和地区，1789–2025 年，拖动年份看各国从哪里来、往哪里去。">
+<meta property="og:title" content="政治坐标系｜读《可能性的艺术》">
+<meta property="og:description" content="一本书做成的可交互读物：两根轴，179 个国家和地区，两百多年。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://miajia.dev/project/the-art-of-possibility/">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{-webkit-text-size-adjust:100%}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<style>
+/* Layout: a sea chart. One square plane (the chart) is the instrument; lens tabs above it choose which
+   ships to follow, the time bar under it moves them, and a logbook column beside it tells each ship's story. */
+:root{
+  --bg:#edf1f0; --surface:#f9fbfa; --ink:#14242c; --ink2:#47575e; --muted:#66757b;
+  --line:#d6dfde; --line2:#aebcbc; --chip:#e1e8e7; --chip-on:#14242c; --chip-on-ink:#f9fbfa;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --bgdot:#7f8f94;
+  --display:"Noto Serif SC","Songti SC","STSong","SimSun",serif;
+  --body:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0d1418; --surface:#141d22; --ink:#edf2f2; --ink2:#b3bfc2; --muted:#8a989d;
+    --line:#25313a; --line2:#46555f; --chip:#1c2830; --chip-on:#edf2f2; --chip-on-ink:#0d1418;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --bgdot:#6f7f86; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0d1418; --surface:#141d22; --ink:#edf2f2; --ink2:#b3bfc2; --muted:#8a989d;
+  --line:#25313a; --line2:#46555f; --chip:#1c2830; --chip-on:#edf2f2; --chip-on-ink:#0d1418;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --bgdot:#6f7f86; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.65}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:22px 56px;display:flex;flex-direction:column;gap:18px}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--s1);outline-offset:2px}
+
+.sitebar,.credit{margin:0;font-size:12.5px;color:var(--muted)}
+.sitebar a,.credit a{color:var(--ink2)}
+.mast{display:flex;flex-direction:column;gap:6px;max-width:46em}
+.eyebrow{margin:0;font-size:12.5px;letter-spacing:.08em;color:var(--muted)}
+h1{margin:0;font-family:var(--display);font-weight:900;font-size:clamp(30px,6vw,44px);line-height:1.15;letter-spacing:.02em;text-wrap:balance}
+.lede{margin:0;color:var(--ink2);font-size:15.5px}
+
+.lenses{overflow-x:auto;margin-inline:-16px;padding-inline:16px;scrollbar-width:none}
+.lenses::-webkit-scrollbar{display:none}
+.lensrow{display:flex;gap:8px;width:max-content}
+.lens{border:1px solid var(--line2);background:transparent;border-radius:999px;padding:6px 14px;font-size:14px;white-space:nowrap;display:flex;gap:6px;align-items:baseline}
+.lens small{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+.lens[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-ink);border-color:var(--chip-on)}
+.lens[aria-pressed="true"] small{color:var(--chip-on-ink);opacity:.7}
+
+.note{display:flex;flex-direction:column;gap:8px;border-top:2px solid var(--ink);padding-top:12px;max-width:52em}
+.note h2{margin:0;font-family:var(--display);font-weight:600;font-size:20px;line-height:1.3}
+.note h2 span{font-family:var(--mono);font-size:11.5px;font-weight:400;color:var(--muted);margin-left:8px;letter-spacing:.02em}
+.note p{margin:0;color:var(--ink2)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chip{border:0;background:var(--chip);border-radius:6px;padding:4px 10px;font-size:13.5px;display:inline-flex;align-items:center;gap:6px}
+.chip i{width:9px;height:9px;border-radius:50%;background:var(--muted);display:inline-block;flex:none}
+.chip[data-slot="1"] i{background:var(--s1)} .chip[data-slot="2"] i{background:var(--s2)} .chip[data-slot="3"] i{background:var(--s3)}
+.chip[aria-pressed="true"],.chip.on{box-shadow:inset 0 0 0 1.5px var(--ink)}
+.linkbtn{border:0;background:none;padding:0;color:var(--ink);text-decoration:underline;text-underline-offset:3px;font-size:13.5px}
+
+.stage{display:grid;grid-template-columns:auto minmax(0,1fr);gap:32px;align-items:start}
+.chartcol{display:flex;flex-direction:column;gap:10px;min-width:0;position:sticky;top:calc(env(safe-area-inset-top,0px) + 10px);width:min(clamp(380px,calc(100vh - 330px),600px),54vw)}
+.axisbar{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:13px;color:var(--ink2);align-items:center}
+.axisbar label{display:flex;align-items:center;gap:6px}
+select{background:var(--surface);border:1px solid var(--line2);border-radius:6px;padding:4px 8px;font-size:13.5px;max-width:100%}
+.chart{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:4px;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.chart svg{display:block;width:100%;height:auto;touch-action:pan-y}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--surface);border-radius:6px;padding:7px 10px;font-size:12.5px;line-height:1.45;max-width:220px;z-index:3}
+.tip b{display:block;font-size:13.5px}
+.tip span{font-family:var(--mono);font-size:11.5px;opacity:.85;display:block}
+.tip em{font-style:normal;opacity:.7;font-size:11.5px}
+
+.grid line{stroke:var(--line);stroke-width:1}
+.mid line{stroke:var(--line2);stroke-width:1}
+.tick{font-family:var(--mono);font-size:10px;fill:var(--muted)}
+.atitle{font-size:11.5px;fill:var(--ink2);font-weight:600}
+.midlab{font-size:10.5px;fill:var(--muted)}
+.d.bg{fill:var(--bgdot);fill-opacity:.38}
+.d.ft{fill:var(--surface);stroke:var(--muted);stroke-width:1.3}
+.d.ft.mem{fill:var(--ink);stroke:var(--surface);stroke-width:1.5}
+.d.dim{fill-opacity:.22}
+.d.s1{fill:var(--s1)} .d.s2{fill:var(--s2)} .d.s3{fill:var(--s3)}
+.d.sel{stroke:var(--surface);stroke-width:2;fill-opacity:1}
+.trail{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round;stroke-opacity:.9}
+.trail.act{stroke-width:2.6}
+.t1{stroke:var(--s1)} .t2{stroke:var(--s2)} .t3{stroke:var(--s3)}
+.f1{fill:var(--s1)} .f2{fill:var(--s2)} .f3{fill:var(--s3)}
+.ev{stroke:var(--surface);stroke-width:1.5}
+.start{fill:var(--surface);stroke-width:1.8}
+.lab{font-size:12px;fill:var(--ink);paint-order:stroke;stroke:var(--surface);stroke-width:3.2px;stroke-linejoin:round}
+.lab.b{font-weight:700}
+.evlab{font-family:var(--mono);font-size:9.5px;fill:var(--ink2);paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}
+.leader{stroke:var(--line2);stroke-width:1}
+.hov{fill:none;stroke:var(--ink);stroke-width:1.5}
+
+.timebar{display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:12px;align-items:center}
+.play{width:38px;height:38px;border-radius:50%;border:0;background:var(--chip-on);color:var(--chip-on-ink);display:grid;place-items:center}
+.play svg{width:14px;height:14px;fill:currentColor}
+.yr{font-family:var(--mono);font-weight:500;font-size:30px;line-height:1;min-width:4ch;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--ink);min-width:0}
+.eras{display:flex;flex-wrap:wrap;gap:6px}
+.era{border:0;background:none;padding:2px 0;margin-right:10px;font-size:12.5px;color:var(--ink2);display:inline-flex;gap:5px;align-items:baseline;border-bottom:1px solid var(--line2)}
+.era b{font-family:var(--mono);font-weight:500;color:var(--ink)}
+.era.on{border-bottom-color:var(--ink);color:var(--ink)}
+
+.quad{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line2);border-radius:4px;overflow:hidden;font-size:12.5px}
+.quad div{padding:7px 10px;display:flex;justify-content:space-between;gap:8px;align-items:baseline;color:var(--ink2);min-width:0}
+.quad div:nth-child(odd){border-right:1px solid var(--line2)}
+.quad div:nth-child(-n+2){border-bottom:1px solid var(--line2)}
+.quad b{font-family:var(--mono);font-weight:500;font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums}
+.quad div.here{background:var(--chip);color:var(--ink)}
+.cap{margin:0;font-size:12px;color:var(--muted);line-height:1.55}
+.key{display:inline-block;width:9px;height:9px;border-radius:50%;vertical-align:baseline;margin-right:3px}
+.key.k1{background:var(--ink)} .key.k2{background:var(--bgdot);opacity:.55}
+.key.k3{border-radius:0;transform:rotate(45deg);background:var(--surface);border:1.5px solid var(--ink);width:8px;height:8px}
+
+.panel{display:flex;flex-direction:column;gap:16px;min-width:0}
+.picked{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.pick{display:inline-flex;align-items:center;border-radius:6px;background:var(--chip);overflow:hidden}
+.pick button{border:0;background:none;padding:5px 9px;font-size:13.5px;display:inline-flex;gap:6px;align-items:center}
+.pick button.x{padding:5px 8px 5px 2px;color:var(--muted)}
+.pick i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.pick[data-slot="1"] i{background:var(--s1)} .pick[data-slot="2"] i{background:var(--s2)} .pick[data-slot="3"] i{background:var(--s3)}
+.pick.on{box-shadow:inset 0 0 0 1.5px var(--ink)}
+.cname{margin:0;font-family:var(--display);font-weight:900;font-size:30px;line-height:1.2;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.cname i{width:14px;height:14px;border-radius:50%;display:inline-block;flex:none}
+.cname small{font-family:var(--mono);font-weight:400;font-size:11.5px;color:var(--muted);letter-spacing:.02em}
+.q{margin:0;font-family:var(--display);font-weight:600;font-size:16.5px;line-height:1.5}
+.pts{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;color:var(--muted)}
+.read{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--ink2);border-block:1px solid var(--line);padding-block:8px}
+.read b{font-family:var(--mono);font-weight:500;font-size:16px;color:var(--ink);margin-left:5px;font-variant-numeric:tabular-nums}
+.mini{touch-action:pan-y;cursor:ew-resize}
+.mini svg{display:block;width:100%;height:auto}
+.mini .ml{fill:none;stroke-width:2;stroke-linejoin:round}
+.mini .mb{stroke:var(--line);stroke-width:1}
+.mini .mc{stroke:var(--ink);stroke-width:1}
+.mini .mt{font-size:10.5px;fill:var(--muted)}
+.mini .mv{font-family:var(--mono);font-size:11px;fill:var(--ink)}
+.mini .me{stroke:var(--line2);stroke-width:1}
+.mini .md{stroke:var(--surface);stroke-width:2}
+.sec{display:flex;flex-direction:column;gap:6px}
+.sec h3{margin:0;font-size:12px;letter-spacing:.12em;color:var(--muted);font-weight:600}
+.sec p{margin:0;color:var(--ink)}
+.evs{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.evs button{width:100%;text-align:left;border:0;background:none;padding:6px 8px 6px 0;display:grid;grid-template-columns:4.2ch minmax(0,1fr);gap:12px;border-bottom:1px solid var(--line);color:var(--ink2);line-height:1.5}
+.evs button b{font-family:var(--mono);font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums}
+.evs button.past{color:var(--ink)}
+.evs button.now{background:var(--chip);padding-left:8px;border-radius:4px}
+.bars{display:grid;grid-template-columns:auto minmax(0,1fr) 4ch;gap:7px 10px;align-items:center;font-size:13px}
+.bars .tr{height:6px;background:var(--chip);border-radius:3px;overflow:hidden}
+.bars .fl{height:100%;border-radius:0 3px 3px 0;background:var(--ink2)}
+.bars .nv{font-family:var(--mono);font-size:12px;text-align:right;font-variant-numeric:tabular-nums}
+.pairs{display:flex;flex-direction:column;gap:6px}
+.pairs button{border:0;background:var(--chip);border-radius:6px;padding:7px 10px;text-align:left;font-size:13.5px;line-height:1.5}
+.pairs button b{margin-right:8px}
+.empty{color:var(--muted);margin:0}
+#detail{display:flex;flex-direction:column;gap:16px;min-width:0}
+
+details{border-top:1px solid var(--line2);padding-top:10px}
+summary{cursor:pointer;font-weight:600;font-size:14.5px}
+.tblwrap{overflow-x:auto;margin-top:10px}
+table{border-collapse:collapse;font-size:13px;min-width:520px;width:100%}
+th,td{text-align:right;padding:5px 10px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;white-space:nowrap}
+th:first-child,td:first-child,th:last-child,td:last-child{text-align:left}
+th{font-weight:600;color:var(--muted);font-size:12px}
+td{font-family:var(--mono);font-size:12.5px} td:first-child,td:last-child{font-family:var(--body);font-size:13px}
+.method{max-width:52em;display:flex;flex-direction:column;gap:10px;margin-top:10px;color:var(--ink2);font-size:14px}
+.method p{margin:0} .method b{color:var(--ink)}
+.method a{color:var(--ink)}
+
+@media (max-width:900px){
+  .stage{grid-template-columns:minmax(0,1fr);gap:22px}
+  .chartcol{position:static;width:auto}
+}
+@media (max-width:420px){
+  .yr{font-size:26px}
+  .cname{font-size:26px}
+}
+</style>
+
+<div class="wrap">
+  <p class="sitebar"><a href="/">miajia.dev</a> / project</p>
+  <header class="mast">
+    <p class="eyebrow">读刘瑜《可能性的艺术：比较政治学30讲》</p>
+    <h1>政治坐标系</h1>
+    <p class="lede">用两根轴给每个国家定位：国家能力（政府办不办得成事）和民主问责（民众管不管得住政府）。拖动年份，看各国从哪里出发、走到了哪里。</p>
+  </header>
+
+  <nav class="lenses" aria-label="按章节看"><div class="lensrow" id="lensrow"></div></nav>
+
+  <section class="note" id="note" aria-live="polite"></section>
+
+  <div class="stage">
+    <div class="chartcol">
+      <div class="axisbar">
+        <label for="selx">横轴 <select id="selx"></select></label>
+        <label for="sely">纵轴 <select id="sely"></select></label>
+      </div>
+      <div class="chart" id="chart"><svg id="svg" role="img" aria-label="各国在两个维度上的位置"></svg><div class="tip" id="tip" hidden></div></div>
+      <div class="timebar">
+        <button class="play" id="play" type="button" aria-label="播放"><svg viewBox="0 0 14 14" id="playico"><path d="M2 1l11 6-11 6z"/></svg></button>
+        <output class="yr" id="yr" for="year">2025</output>
+        <input type="range" id="year" min="1789" max="2025" step="1" value="2025" aria-label="年份">
+      </div>
+      <div class="eras" id="eras"></div>
+      <div class="quad" id="quad" aria-label="四个象限各有多少国家"></div>
+      <p class="cap"><span class="key k1"></span>书中案例　<span class="key k2"></span>其他国家和地区　<span class="key k3"></span>&nbsp;世界平均。圆点越大，人均收入越接近美国。点任意圆点看它的轨迹，最多同时对照三个；轨迹上的小点每十年一个。</p>
+    </div>
+
+    <aside class="panel" id="panel">
+      <div class="picked" id="picked"></div>
+      <div id="detail"></div>
+    </aside>
+  </div>
+
+  <details id="tbl">
+    <summary>当年数据表</summary>
+    <div class="tblwrap"><table id="table"></table></div>
+  </details>
+
+  <details>
+    <summary>数据从哪来，哪些是我的概括</summary>
+    <div class="method">
+      <p><b>民主问责</b>用 V-Dem 数据集（第 16 版，1789–2025 年）的选举民主指数，范围 0 到 1。0.5 是参考线。</p>
+      <p><b>国家能力</b>是这里自己合成的指数，书里没有这个数。取 V-Dem 的四项指标：国家实际控制的领土比例、行政是否严格公正、财政主要靠什么收入、官员任用看关系还是看能力。四项分别对应书中讲的国家能力来源：常备军、财税、行政体系、文官制。各项按 1900–2025 年全部国家标准化后取平均，再线性换算到 0 到 1。参考线 0.55 是 1900–2025 年的世界平均。它与世界银行“政府效能”指标（1996–2024 年）的相关系数是 0.85。</p>
+      <p><b>这个指数的两个局限。</b>它只衡量行政是否规范，动员和执行的力度不在其中。它和民主程度本身相关（相关系数约 0.74），左上角偏空有一部分是指标造成的。</p>
+      <p><b>法治</b>用 V-Dem 的法治指数。<b>经济发展</b>用 V-Dem 收录的人均 GDP 估计值，换算成同年美国水平的百分比；数据到 2019 年为止，之后沿用 2019 年的值。<b>世界平均</b>是各国简单平均，每国一票，不按人口加权。</p>
+      <p><b>书的内容。</b>章节和小节标题来自公开的目录。每个国家的缘起、转折、结果，各章的看点，以及四个象限的名字，是我根据公开史实和上面的数据写的概括，不是书中原文。俄罗斯是音频课里的案例，成书时那一讲换成了法国。</p>
+      <p><b>统计口径</b>按 V-Dem：苏联时期记在俄罗斯名下，1949–1990 年的西德记在德国名下。图上还有一些历史上的政治体和数据集单列的统计单元。</p>
+      <p>来源：<a href="https://www.v-dem.net/data/the-v-dem-dataset/" target="_blank" rel="noopener">V-Dem Dataset v16</a>；刘瑜《可能性的艺术：比较政治学30讲》，广西师范大学出版社，2022。V-Dem 数据以 CC BY-SA 4.0 许可发布，本页内嵌的派生数据沿用同一许可。</p>
+    </div>
+  </details>
+  <p class="credit">Mia Builder 手记 · 用 AI 制作 · <a href="https://github.com/MIAJIA/the-art-of-possibility" target="_blank" rel="noopener">源码在 GitHub</a></p>
+</div>
+
+<script>const DATA=/*__DATA__*/;</script>
+<script>
+(function(){
+"use strict";
+const D=DATA, Y0=D.y0, Y1=D.y1;
+const A='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_', AI={};
+for(let i=0;i<64;i++) AI[A[i]]=i;
+function dec(s){const n=s.length/2,o=new Float32Array(n);for(let i=0;i<n;i++){const a=s[2*i];o[i]=a==='~'?NaN:(AI[a]*64+AI[s[2*i+1]])/4095}return o}
+
+/* ---------- units ---------- */
+const U={};
+for(const id in D.units){
+  const u=D.units[id], o={id,n:u.n,s:u.s,p:dec(u.p),c:dec(u.c),r:dec(u.r),g:dec(u.g)};
+  o.e=o.s+o.p.length-1;
+  const cp=D.comp[id]; o.comp={t:dec(cp.t),a:dec(cp.a),f:dec(cp.f),m:dec(cp.m),T:dec(cp.T)};
+  U[id]=o;
+}
+(function(){
+  const n=Y1-Y0+1, w={id:'WLD',n:'世界平均',s:Y0,e:Y1,world:true};
+  for(const k of ['p','c','r','g']){
+    const a=new Float32Array(n);
+    for(let i=0;i<n;i++){let s=0,c=0;const y=Y0+i;
+      for(const id in U){const u=U[id];if(y<u.s||y>u.e)continue;const v=u[k][y-u.s];if(v===v){s+=v;c++}}
+      a[i]=c?s/c:NaN}
+    w[k]=a}
+  U.WLD=w;
+})();
+function val(u,k,yf){
+  if(yf<u.s||yf>u.e) return NaN;
+  const i=Math.floor(yf), f=yf-i, a=u[k][i-u.s];
+  if(f===0||i>=u.e) return a;
+  const b=u[k][i+1-u.s];
+  if(a!==a) return NaN; if(b!==b) return a;
+  return a+(b-a)*f;
+}
+
+/* ---------- metrics ---------- */
+const gpos=rel=>(Math.log10(rel)-D.glo)/(D.ghi-D.glo), grel=g=>Math.pow(10,g*(D.ghi-D.glo)+D.glo);
+const f2=v=>v.toFixed(2), t5=[0,.25,.5,.75,1].map(v=>[v,String(v)]);
+const M={
+  cap:{k:'c',name:'国家能力',lo:'弱国家',hi:'强国家',mid:.548,ticks:t5,fmt:f2,title:'国家能力'},
+  acc:{k:'p',name:'民主问责',lo:'弱问责',hi:'强问责',mid:.5,ticks:t5,fmt:f2,title:'民主问责'},
+  rule:{k:'r',name:'法治',lo:'法治弱',hi:'法治强',mid:.5,ticks:t5,fmt:f2,title:'法治'},
+  gdp:{k:'g',name:'经济发展',lo:'较穷',hi:'较富',mid:gpos(20),ticks:[1,3,10,30,100,300].map(v=>[gpos(v),v+'%']),
+       fmt:g=>{const r=grel(g);return (r<10?r.toFixed(1):Math.round(r))+'%'},title:'经济发展（人均收入占美国的比例）'}
+};
+
+/* ---------- the book's cases ---------- */
+const CH={1:'全球视野',2:'政治转型',3:'国家建构',4:'政治文化',5:'政治经济'};
+const F={
+DNK:{ch:1,lec:'第 1 讲',q:'政治比较的维度',pts:['寻找政治比较的尺度','布隆迪到丹麦的距离','政治比较的纵轴与横轴'],from:1789,
+ origin:'1789 年的丹麦是绝对君主制，问责只有 0.11，国家能力却已有 0.85。它先有一台运转良好的国家机器，后有民主。',
+ ev:[[1849,'颁布宪法，绝对君主制结束'],[1901,'议会多数组阁成为惯例'],[1915,'新宪法给予妇女选举权'],[1940,'被德国占领，两项指标同时下挫'],[1945,'战后恢复，此后长期停在右上角']],
+ out:'2025 年问责 0.91、国家能力 0.93，是图上最接近右上角的国家之一。书里用它当尺子的一端。',
+ pairs:[['BDI','尺子的另一端'],['SWE','同为北欧，路径相近']]},
+BDI:{ch:1,lec:'第 1 讲',q:'政治比较的维度',pts:['寻找政治比较的尺度','布隆迪到丹麦的距离','政治比较的纵轴与横轴'],from:1962,
+ origin:'1962 年结束比利时的托管统治而独立，起点就在左下角：问责 0.19，国家能力 0.25。',
+ ev:[[1966,'军事政变，废除君主制'],[1972,'针对胡图人的大规模屠杀'],[1993,'首位民选总统恩达达耶就任数月后遇刺，内战爆发'],[2000,'签署《阿鲁沙和平协议》'],[2005,'新宪法下举行选举，内战大体结束'],[2015,'总统恩库伦齐扎寻求第三任期，引发政治危机']],
+ out:'六十多年里从未离开左下象限。2025 年问责 0.19，和独立时一样；国家能力 0.45，仍低于世界均线。',
+ pairs:[['DNK','尺子的另一端']]},
+SWE:{ch:1,lec:'第 5 讲',q:'为什么瑞典也如此排外？全球化与文化反弹',pts:['有文化传播就会有文化反弹','瑞典为什么从“优等生”变成了问题国家？','多元文化主义：非一日之功','人道主义与现实主义的平衡'],from:1809,
+ origin:'1809 年新宪法限制王权时，瑞典还在图的中下部：问责 0.26，国家能力 0.45。此后一百多年，国家能力先上去，普选随后跟上。',
+ ev:[[1866,'四级议会改为两院制'],[1909,'男性普选权'],[1921,'妇女首次参加全国选举，普选完成'],[1932,'社会民主党开始长期执政'],[2015,'难民危机，庇护申请创纪录'],[2022,'瑞典民主党成为议会第二大党，支持右翼政府']],
+ out:'2015 到 2025 年，问责从 0.92 到 0.89，国家能力从 0.93 到 0.90，位置几乎没动。书里讲的文化反弹在这两根轴上基本看不出来，它发生在另一个维度。',
+ pairs:[['DNK','同为北欧，路径相近'],['WLD','和世界平均对照']]},
+FRA:{ch:2,lec:'第 8 讲',q:'法国往事：转型浪潮中的第一艘泰坦尼克号',pts:['更彻底的民主革命','不自由的民主','善与恶的“捆绑销售”'],from:1789,
+ origin:'1789 年大革命推翻旧制度。当年问责 0.26、国家能力 0.49，在图的中部偏下。',
+ ev:[[1793,'雅各宾派恐怖统治'],[1799,'拿破仑发动雾月政变'],[1815,'波旁王朝复辟'],[1848,'二月革命，实行男性普选'],[1852,'路易·波拿巴称帝，问责跌回 0.16'],[1877,'共和派赢得议会选举，第三共和国站稳；问责此后一直在 0.5 以上，直到 1940 年'],[1940,'战败，维希政权'],[1958,'第五共和国成立']],
+ out:'从 1789 年到问责稳定在 0.5 以上，用了将近九十年，中间经历两个帝国和两段君主制。2025 年问责 0.86、国家能力 0.86。',
+ pairs:[['USA','同时代的两场革命，走了不同的路'],['EGY','革命之后的回潮']]},
+EGY:{ch:2,lec:'第 9 讲',q:'埃及：从“阿拉伯之春”到“阿拉伯之冬”',pts:['威权倒台≠民主转型','埃及短暂的转型实验','民主转型的常见困境：裂痕动员','民主政体自我颠覆的潜质'],from:1952,
+ origin:'1952 年自由军官组织推翻王室，此后近六十年由军人出身的总统执政。2010 年问责 0.21，国家能力 0.46。',
+ ev:[[1981,'萨达特遇刺，穆巴拉克继任'],[2011,'解放广场抗议，穆巴拉克下台'],[2012,'穆尔西当选总统，问责升到 0.30'],[2013,'军方罢黜穆尔西'],[2014,'塞西当选总统，问责跌到 0.14']],
+ out:'转型实验只持续了两年多，问责最高到 0.30，没有接近 0.5。2025 年问责 0.19，回到革命前的位置。',
+ pairs:[['ZAF','旧体制退场后，一个回潮，一个软着陆'],['IRQ','强人倒台之后']]},
+ZAF:{ch:2,lec:'第 10 讲',q:'南非：转型何以软着陆？',pts:['南非民主转型的软着陆','共同的底线：胜利者的宽容','共同的底线：失败者的耐心','共同的底线让“可能性”成为“艺术”'],from:1948,
+ origin:'1948 年国民党上台，把种族隔离制度化。此后四十年，国家能力在 0.63 到 0.67 之间，问责只有 0.2 上下：一台只对少数人负责的强国家机器。',
+ ev:[[1960,'沙佩维尔惨案，非国大被取缔'],[1976,'索韦托起义'],[1990,'曼德拉获释，谈判开始'],[1994,'首次不分种族的大选，曼德拉当选'],[1996,'新宪法通过，问责升到 0.66'],[2018,'祖马在腐败指控中辞职'],[2024,'非国大三十年来首次失去议会多数']],
+ out:'转型期间国家能力没有塌，点几乎是垂直上升的，这就是软着陆在图上的样子。2025 年问责 0.74、国家能力 0.72。',
+ pairs:[['EGY','旧体制退场后，一个回潮，一个软着陆'],['RUS','同在 1990 年代转型，结局相反']]},
+IND:{ch:2,lec:'第 11–12 讲',q:'印度：民主为什么“不管用”？',pts:['民主没有解决印度的治理问题','政体有限论','“表亲的专制”','社会压迫常常比政府压迫走得更远','民主是一个试错过程'],from:1947,
+ origin:'1947 年独立，1951 到 1952 年举行第一次全国大选。1952 年问责 0.60、国家能力 0.72，起点就在右上象限。',
+ ev:[[1950,'宪法生效'],[1975,'英迪拉·甘地宣布紧急状态，问责跌到 0.39'],[1977,'紧急状态结束，国大党首次败选'],[1991,'经济自由化改革'],[2014,'莫迪领导印度人民党赢得多数'],[2019,'印度人民党连任，问责降到 0.43']],
+ out:'七十多年里国家能力一直在 0.60 到 0.72 之间，几乎没有向右移动。问责在 1990 年代升到 0.7 以上，2014 年后回落，2025 年为 0.38。分项看，短板在行政公正，2025 年排在各国后 11%；文官选拔和税制得分不低。',
+ pairs:[['ZAF','同为多族群的民主国家']]},
+IRQ:{ch:2,lec:'第 13 讲',q:'伊拉克：铁腕强人是救星？',pts:['萨达姆时代令人怀念？','威权浪漫主义','政治强人下的俄罗斯轮盘赌游戏'],from:1958,
+ origin:'1958 年军人推翻王室，1968 年复兴党掌权，1979 年萨达姆成为总统。当年问责 0.05，国家能力 0.48。',
+ ev:[[1980,'两伊战争爆发，打了八年'],[1991,'海湾战争战败，此后受国际制裁，国家能力降到 0.36'],[2003,'美国入侵，萨达姆政权倒台'],[2005,'新宪法公投和议会选举'],[2014,'“伊斯兰国”占领摩苏尔，国家能力跌到 0.25'],[2017,'政府军收复摩苏尔']],
+ out:'强人在位时国家能力就在下滑：1979 年 0.48，2002 年 0.35。政权倒台后问责升到 0.4 左右，国家能力继续跌，2014 年见底。2025 年问责 0.37、国家能力 0.48，仍在左下象限。',
+ pairs:[['AFG','外部推翻政权之后重建国家'],['EGY','强人倒台之后']]},
+RUS:{ch:2,lec:'音频课第 8 讲',q:'俄罗斯：娜拉走了有多远？',pts:['音频课里的案例，成书时这一讲换成了法国'],from:1985,
+ origin:'1985 年戈尔巴乔夫上台时，苏联的问责只有 0.11，国家能力 0.49。数据把苏联时期记在俄罗斯名下。',
+ ev:[[1991,'苏联解体，次年问责升到 0.50，是至今的最高点'],[1993,'叶利钦炮击议会大厦，新宪法通过；国家能力降到 0.43'],[2000,'普京就任总统，国家能力回升到 0.55'],[2004,'取消州长直选'],[2012,'普京重返总统职位'],[2022,'全面入侵乌克兰']],
+ out:'轨迹是一个圈：先向上，同时国家能力下滑；再向右，同时问责回落。2025 年问责 0.17，比 1990 年还低，国家能力 0.52。',
+ pairs:[['ZAF','同在 1990 年代转型，结局相反'],['EGY','转型后的回潮']]},
+MEX:{ch:3,lec:'第 14 讲',q:'什么是国家？从墨西哥的毒贩集团说起',pts:['墨西哥的黑帮混战','什么是国家？','国家能力低下是很多国家的“阿基里斯之踵”','为何“国家建构”如此之难？'],from:1910,
+ origin:'1910 年革命爆发时国家能力只有 0.36。1929 年革命各派合组执政党，也就是革命制度党的前身，国家能力升到 0.62，此后一党执政七十一年。',
+ ev:[[1929,'革命各派合组执政党'],[1968,'特拉特洛尔科广场镇压学生'],[2000,'革命制度党首次输掉总统选举，问责 0.67'],[2006,'卡尔德龙出动军队打击贩毒集团'],[2018,'洛佩斯·奥夫拉多尔当选'],[2024,'辛鲍姆当选；司法改革规定法官由选举产生']],
+ out:'2000 年民主化之后，国家能力没有跟着上升，反而从 0.64 慢慢降到 0.55，正好压在均线上。领土控制一项 2025 年只有 86%。问责在 2018 年后回落到 0.47。',
+ pairs:[['USA','一条边境线两侧的国家能力'],['AFG','国家管不住自己的领土']]},
+USA:{ch:3,lec:'第 18–19 讲',q:'美国：国家建构的另类道路',pts:['“反国家主义”的国家观','镀金时代：国家权力的捉襟见肘','台阶一：进步主义时代','台阶二：罗斯福新政','台阶三：民权运动时代'],from:1789,
+ origin:'1789 年宪法生效。建国者提防强政府，19 世纪大部分时间国家能力在 0.45 到 0.53 之间，低于同期的法国和丹麦。',
+ ev:[[1829,'杰克逊就任，官职按党派分配成为惯例'],[1865,'内战结束'],[1883,'《彭德尔顿法》建立考试录用的文官制度，次年国家能力从 0.53 升到 0.61'],[1913,'开征联邦所得税，设立美联储；国家能力升到 0.76'],[1933,'罗斯福新政'],[1965,'《投票权法》，问责 0.67'],[2021,'国会大厦遭冲击'],[2025,'特朗普第二任期开始，问责从 0.84 降到 0.74']],
+ out:'先有选举，后补国家：国家能力的几次台阶都在 1883 年之后。2015 年两项都到高点，分别是 0.90 和 0.85，此后回落。2025 年问责 0.74、国家能力 0.79。',
+ pairs:[['MEX','一条边境线两侧的国家能力'],['FRA','同时代的两场革命，走了不同的路'],['DNK','丹麦先有国家，美国先有选举']]},
+AFG:{ch:3,lec:'第 20 讲',q:'国家建构的瓶颈：阿富汗的悲剧',pts:['阿富汗当代简史：从灾难走向灾难','失败因素：多山地形','失败因素：地缘位置','失败因素：宗教极端主义','失败因素：民族结构','两种乌托邦的对撞'],from:1973,
+ origin:'1973 年国王被废，五年后共产党政变，1979 年苏联入侵。此前国家能力在 0.5 上下，1979 年降到 0.38。',
+ ev:[[1979,'苏联入侵'],[1989,'苏军撤出'],[1992,'共产党政权垮台，军阀混战，国家能力跌到 0.13'],[1996,'塔利班占领喀布尔'],[2001,'美国入侵，塔利班政权倒台'],[2004,'新宪法和总统选举'],[2021,'美军撤离，塔利班重返喀布尔']],
+ out:'2004 到 2020 年问责升到 0.35 左右，国家能力却从 0.34 降到 0.22：选举办起来了，国家没建起来。2021 年后问责回到 0.07，国家能力 0.23，是书中案例里最靠左下的一个。',
+ pairs:[['IRQ','外部推翻政权之后重建国家'],['MEX','国家管不住自己的领土']]},
+KOR:{ch:4,lec:'第 21 讲',q:'韩国电影中的革命：观念的水位与制度的变迁',pts:['韩国转型：观念驱动的变革','从学生到全民：观念的扩散','观念从何而来？'],from:1948,
+ origin:'1948 年建国时问责 0.14、国家能力 0.49。1961 年朴正熙政变后，国家能力从 0.65 一路升到 0.83，问责始终没有超过 0.31。',
+ ev:[[1961,'朴正熙军事政变'],[1972,'维新宪法，总统连任不再受限'],[1980,'光州事件'],[1987,'六月抗争，恢复总统直选'],[1997,'金大中当选，首次政党轮替'],[2017,'烛光集会后，朴槿惠被弹劾罢免'],[2024,'尹锡悦宣布戒严，数小时后被国会否决，次年被罢免']],
+ out:'轨迹像一个直角：先向右走了二十多年，1987 年后转头向上，一年内问责从 0.38 跳到 0.62。2024 年戒严风波让问责掉到 0.72，2025 年回到 0.82，国家能力 0.91。',
+ pairs:[['THA','同样有学生运动和经济起飞，结局不同']]},
+THA:{ch:4,lec:'第 22 讲',q:'何为民主文化？泰国困局',pts:['泰国的政变之谜','参与精神=民主文化？','泰国民众的政治激情','民主文化是一种混合文化'],from:1932,
+ origin:'1932 年立宪革命结束绝对君主制，此后政变不断，军人和文官轮流执政。',
+ ev:[[1973,'学生运动推翻军政府'],[1992,'“黑色五月”抗议，军人总理下台'],[1997,'新宪法通过'],[2001,'他信当选总理，问责到 0.55'],[2006,'军事政变推翻他信'],[2014,'军事政变推翻英拉政府，问责跌到 0.16'],[2023,'大选，前进党得票第一但未能组阁']],
+ out:'1992 年以来国家能力稳定在 0.63 到 0.74 之间，问责却上下折返：2001 年 0.55，2006 年 0.23，2011 年 0.46，2014 年 0.16，2025 年 0.42。点在同一条竖线上来回走。',
+ pairs:[['KOR','同样有学生运动和经济起飞，结局不同'],['EGY','选举之后的军人干政']]},
+CHL:{ch:5,lec:'第 26 讲',q:'智利：皮诺切特之后',pts:['智利转型之后的经济表现','政治转型未必伤害经济自由','为什么智利经济在拉美地区脱颖而出？','不确定的未来'],from:1970,
+ origin:'1970 年阿连德当选时，智利已是拉美的老牌民主国家：问责 0.60，国家能力 0.65。',
+ ev:[[1973,'皮诺切特军事政变，次年问责跌到 0.07'],[1980,'军政府颁布新宪法'],[1988,'公投否决皮诺切特继续执政'],[1990,'文人政府就职，问责回到 0.72'],[2019,'大规模社会抗议'],[2022,'新宪法草案被公投否决']],
+ out:'军政府十七年里国家能力只小幅下降，保持在 0.57 到 0.64 之间，所以 1990 年能几乎垂直地回到右上。人均收入从 1988 年相当于美国的 22% 升到 2019 年的 37%。2025 年问责 0.84、国家能力 0.72。',
+ pairs:[['VEN','同在拉美，1998 年后分道扬镳'],['ZAF','同样是谈判式转型']]},
+VEN:{ch:5,lec:'第 27 讲',q:'委内瑞拉：如何毁掉一个国家？',pts:['一个当代经济噩梦','查韦斯的“21世纪社会主义”蓝图','委内瑞拉何以至此？','经济乌托邦主义倒推政治独裁','海妖塞壬的歌声'],from:1958,
+ origin:'1958 年独裁者下台，主要政党签订《蓬托菲霍协定》分享权力。到 1989 年问责 0.74，是当时拉美少有的稳定民主；人均收入在 1958 年相当于美国的 43%。',
+ ev:[[1989,'加拉加斯骚乱'],[1992,'查韦斯政变未遂'],[1998,'查韦斯当选总统'],[1999,'新宪法通过'],[2013,'查韦斯去世，马杜罗继任，问责 0.33'],[2017,'制宪大会架空反对派控制的议会'],[2024,'争议性总统选举']],
+ out:'1998 年以来两根轴一起下滑，这在图上很少见：问责从 0.73 降到 0.18，国家能力从 0.59 降到 0.29，法治指数接近 0。人均收入 2013 年相当于美国的 28%，2019 年只剩 9%。2026 年 1 月美军行动带走马杜罗，此后的变化不在数据范围内。',
+ pairs:[['CHL','同在拉美，1998 年后分道扬镳'],['RUS','民选领导人拆掉问责']]},
+WLD:{ch:1,lec:'第 6–7 讲',q:'“历史终结论”的终结？',pts:['第三波民主化','民主衰退的表现之一：民主崩溃','民主衰退的表现之二：民主的伪劣化','民主韧性从何而来？'],from:1900,
+ origin:'把所有国家取平均，每国一票，不按人口加权，可以看到世界整体的移动方向。1900 年各国平均问责只有 0.14。',
+ ev:[[1945,'二战结束'],[1974,'葡萄牙康乃馨革命，第三波民主化开始，平均问责 0.29'],[1992,'苏联解体次年，平均问责升到 0.44'],[2012,'平均问责见顶，0.53'],[2025,'回落到 0.48']],
+ out:'一百二十五年里，世界平均点向右上方移动，2012 年后调头向下，纵轴回到 2000 年前后的水平。横轴的国家能力自 2010 年前后基本持平。',
+ pairs:[['SWE','老牌民主国家'],['IND','大国里的回落']]}
+};
+const FEAT=Object.keys(F).filter(k=>k!=='WLD');
+const LENS=[
+ {id:'all',name:'全图',tag:'第 1 讲',title:'从布隆迪到丹麦',members:FEAT.concat('WLD'),sel:['DNK','BDI'],
+  text:'横轴是国家能力，纵轴是民主问责，书的第一讲用这两根轴搭起参照系，丹麦和布隆迪是尺子的两端。往回拖动年份会看到，左上角几乎一直是空的：1900 年没有一个国家落在那里，2025 年也只有 8 个。弱国家很少撑得住强问责。'},
+ {id:'global',name:'全球视野',tag:'第一章',title:'整个世界往哪边走',members:['WLD','SWE'],sel:['WLD','SWE'],
+  text:'这一章讲时代背景：战后的和平、国际格局、全球化的经济后果和文化反弹。世界平均点的轨迹就是这个背景，它在 1974 年后加速向上，2012 年见顶后回落。瑞典是书里讲文化反弹的案例。'},
+ {id:'trans',name:'政治转型',tag:'第二章',title:'旧体制退场之后',members:['FRA','EGY','ZAF','IND','IRQ','RUS'],sel:['EGY','ZAF','IRQ'],
+  text:'威权倒台之后往哪走，没有固定答案。南非几乎垂直上升；埃及升到一半又落回原处；伊拉克的问责上去了，国家能力却塌了。法国的轨迹说明，这个过程可以长达九十年。'},
+ {id:'state',name:'国家建构',tag:'第三章',title:'横轴上的功夫',members:['MEX','USA','AFG'],sel:['USA','MEX','AFG'],
+  text:'这一章看横轴。书里讲国家能力的两个来源是战争和文官制。美国 19 世纪停在图的中间，1883 年后才一步步向右；墨西哥民主化之后横轴反而后退；阿富汗在二十年的外部援建中继续向左。'},
+ {id:'culture',name:'政治文化',tag:'第四章',title:'同样的起点，不同的落点',members:['KOR','THA'],sel:['KOR','THA'],
+  text:'两国都有过强人统治、学生运动和经济起飞。韩国 1987 年向上之后没有再掉下来，泰国在同一条竖线上反复折返。这一章问的是制度之外，观念和文化起了什么作用。'},
+ {id:'econ',name:'政治经济',tag:'第五章',title:'两个拉美国家的岔路',members:['CHL','VEN'],sel:['CHL','VEN'],swap:true,
+  text:'智利在军政府之后回到右上，收入向美国靠近；委内瑞拉在民选政府手里一路滑向左下，2019 年的人均收入不到美国的十分之一。把横轴换成经济发展，能更直接地看到这一点。'}
+];
+const ERAS=[[1789,'法国大革命'],[1848,'欧洲革命'],[1900,''],[1945,'二战结束'],[1974,'第三波开始'],[1991,'苏联解体'],[2012,'问责见顶'],[2025,'现在']];
+
+/* ---------- state ---------- */
+const S={yf:2025,lens:'all',x:'cap',y:'acc',sel:[],active:null,playing:false};
+const $=id=>document.getElementById(id);
+const NS='http://www.w3.org/2000/svg';
+function se(n,a,p){const e=document.createElementNS(NS,n);if(a)for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
+function he(n,a,t,p){const e=document.createElement(n);if(a)for(const k in a)e.setAttribute(k,a[k]);if(t!=null)e.textContent=t;if(p)p.appendChild(e);return e}
+const slotOf=id=>{const s=S.sel.find(s=>s.id===id);return s?s.slot:0};
+function addSel(id){
+  if(slotOf(id)) return;
+  if(S.sel.length>=3){const i=S.sel.findIndex(s=>s.id!==S.active);S.sel.splice(i<0?0:i,1)}
+  const used=new Set(S.sel.map(s=>s.slot));let slot=1;while(used.has(slot))slot++;
+  S.sel.push({id,slot});
+}
+function removeSel(id){S.sel=S.sel.filter(s=>s.id!==id);if(S.active===id)S.active=S.sel.length?S.sel[S.sel.length-1].id:null}
+function tap(id){
+  if(!slotOf(id)){addSel(id);S.active=id}
+  else if(S.active!==id){S.active=id}
+  else removeSel(id);
+  selectionChanged();
+}
+const trailFrom=id=>F[id]?F[id].from:Math.max(U[id].s,1900);
+
+/* ---------- chart ---------- */
+const svg=$('svg'), chartEl=$('chart'), tip=$('tip');
+const G={};
+const gStatic=se('g',null,svg), gBg=se('g',null,svg), gTrail=se('g',null,svg), gFt=se('g',null,svg), gLab=se('g',null,svg), gHov=se('g',null,svg);
+const hov=se('circle',{class:'hov',r:8,visibility:'hidden'},gHov);
+for(const id in U){
+  const u=U[id]; u.feat=!!F[id];
+  u.el=u.world?se('rect',{class:'d ft'}):se('circle',{class:u.feat?'d ft':'d bg'});
+}
+const sx=v=>G.L+v*G.side, sy=v=>G.T+(1-v)*G.side;
+function syncLayers(){
+  for(const id in U){const u=U[id];(u.feat||slotOf(id)?gFt:gBg).appendChild(u.el)}
+  for(const s of S.sel) gFt.appendChild(U[s.id].el);
+}
+function layout(){
+  const w=Math.max(260,Math.floor(chartEl.clientWidth));
+  G.W=w;G.L=34;G.Rm=12;G.T=26;G.Bm=36;G.side=w-G.L-G.Rm;G.H=G.T+G.side+G.Bm;
+  svg.setAttribute('viewBox','0 0 '+w+' '+G.H);
+  drawStatic();draw();
+}
+function drawStatic(){
+  if(!G.W)return;
+  gStatic.textContent='';
+  const X=M[S.x],Yy=M[S.y],L=G.L,T=G.T,R=G.L+G.side,B=G.T+G.side;
+  const gg=se('g',{class:'grid'},gStatic);
+  for(const [v,t] of X.ticks){const x=sx(v);se('line',{x1:x,x2:x,y1:T,y2:B},gg);const e=se('text',{class:'tick',x:x,y:B+14,'text-anchor':v<=0?'start':v>=1?'end':'middle'},gStatic);e.textContent=t}
+  for(const [v,t] of Yy.ticks){const y=sy(v);se('line',{x1:L,x2:R,y1:y,y2:y},gg);const e=se('text',{class:'tick',x:L-5,y:y+(v<=0?0:v>=1?8:3.5),'text-anchor':'end'},gStatic);e.textContent=t}
+  const gm=se('g',{class:'mid'},gStatic),mx=sx(X.mid),my=sy(Yy.mid);
+  se('line',{x1:mx,x2:mx,y1:T,y2:B},gm);se('line',{x1:L,x2:R,y1:my,y2:my},gm);
+  let e=se('text',{class:'midlab',x:mx-6,y:T+13,'text-anchor':'end'},gStatic);e.textContent='← '+X.lo;
+  e=se('text',{class:'midlab',x:mx+6,y:T+13},gStatic);e.textContent=X.hi+' →';
+  e=se('text',{class:'midlab',x:L+6,y:my-6},gStatic);e.textContent='↑ '+Yy.hi;
+  e=se('text',{class:'midlab',x:L+6,y:my+15},gStatic);e.textContent='↓ '+Yy.lo;
+  e=se('text',{class:'atitle',x:2,y:15},gStatic);e.textContent='↑ '+Yy.title;
+  e=se('text',{class:'atitle',x:R,y:B+30,'text-anchor':'end'},gStatic);e.textContent=X.title+' →';
+}
+const mctx=document.createElement('canvas').getContext('2d'), wcache={};
+function tw(t,font){const k=font+t;if(wcache[k])return wcache[k];mctx.font=font;return wcache[k]=mctx.measureText(t).width}
+const bodyFont=getComputedStyle(document.body).fontFamily;
+const CAND=[];for(const d of [3,11,22,36,52])for(const a of [0,180,90,270,45,315,135,225,22,338,158,202])CAND.push([a*Math.PI/180,d]);
+const prevC={};
+function placeLabels(items,rects,dots){
+  const out=[];
+  for(const it of items){
+    let best=null,bc=1e9,bi=-1;
+    for(let i=0;i<CAND.length;i++){
+      const [a,d]=CAND[i],cx=Math.cos(a),cy=-Math.sin(a),dist=it.r+d;
+      const mxc=it.x+cx*dist+(Math.abs(cx)>.3?Math.sign(cx)*it.w/2:0), myc=it.y+cy*dist+(Math.abs(cy)>.3?Math.sign(cy)*it.h/2:0);
+      const r=[mxc-it.w/2,myc-it.h/2,mxc+it.w/2,myc+it.h/2];
+      let c=d*1.3+(i%12)*1.5;
+      if(prevC[it.key]===i)c-=9;
+      if(r[0]<2||r[2]>G.W-2||r[1]<16||r[3]>G.T+G.side-1)c+=5000;
+      for(const q of rects)if(r[0]<q[2]+2&&r[2]>q[0]-2&&r[1]<q[3]+1&&r[3]>q[1]-1)c+=1000;
+      for(const q of dots){if(q.key===it.key)continue;if(r[0]<q.x+q.r+1&&r[2]>q.x-q.r-1&&r[1]<q.y+q.r+1&&r[3]>q.y-q.r-1)c+=260}
+      if(c<bc){bc=c;best=r;bi=i}
+    }
+    if(it.optional&&bc>=250)continue;
+    prevC[it.key]=bi;rects.push(best);out.push({it,r:best,far:CAND[bi][1]>12});
+  }
+  return out;
+}
+function trailPts(u,from,yf){
+  const X=M[S.x].k,Yk=M[S.y].k,pts=[];
+  const end=Math.min(yf,u.e);
+  for(let y=Math.max(from,u.s);y<=Math.floor(end);y++){const a=val(u,X,y),b=val(u,Yk,y);if(a===a&&b===b)pts.push([sx(a),sy(b),y])}
+  if(end>Math.floor(end)){const a=val(u,X,end),b=val(u,Yk,end);if(a===a&&b===b)pts.push([sx(a),sy(b),end])}
+  return pts;
+}
+let HIT=[];
+function draw(){
+  if(!G.W)return;
+  const yf=S.yf,X=M[S.x],Yy=M[S.y],lens=LENS.find(l=>l.id===S.lens),mem=new Set(lens.members);
+  const q=[0,0,0,0];HIT=[];
+  const dots=[],labs=[];
+  for(const id in U){
+    const u=U[id],vx=val(u,X.k,yf),vy=val(u,Yy.k,yf),el=u.el;
+    if(!(vx===vx&&vy===vy)){el.setAttribute('visibility','hidden');u.on=false;continue}
+    u.on=true;u.vx=vx;u.vy=vy;u.px=sx(vx);u.py=sy(vy);
+    let g=val(u,'g',yf);if(g!==g)g=.3;
+    const slot=slotOf(id),isMem=mem.has(id);
+    let r=u.feat?3.6+4.6*g:1.7+2.7*g;if(u.feat&&!isMem&&!slot)r*=.8;if(slot)r=Math.max(r,4.2)+1.6;
+    u.pr=r;
+    let cls='d '+(u.feat?'ft':'bg');
+    if(u.feat&&isMem)cls+=' mem';
+    if(!u.feat&&S.lens!=='all')cls+=' dim';
+    if(slot)cls+=' sel s'+slot;
+    el.setAttribute('class',cls);el.setAttribute('visibility','visible');
+    if(u.world){const h=slot?5.2:4.2;el.setAttribute('x',u.px-h);el.setAttribute('y',u.py-h);el.setAttribute('width',2*h);el.setAttribute('height',2*h);el.setAttribute('transform','rotate(45 '+u.px+' '+u.py+')');u.pr=h+2}
+    else{el.setAttribute('cx',u.px);el.setAttribute('cy',u.py);el.setAttribute('r',r)}
+    if(!u.world)q[(vy>=Yy.mid?0:2)+(vx>=X.mid?1:0)]++;
+    HIT.push(u);
+    if(u.feat||slot)dots.push({key:id,x:u.px,y:u.py,r:u.pr});
+    if(slot||(u.feat&&isMem))labs.push({key:id,x:u.px,y:u.py,r:u.pr,text:u.n,bold:!!slot,pri:slot?(id===S.active?0:1):2});
+  }
+  /* trails */
+  gTrail.textContent='';
+  const evItems=[];
+  for(const s of S.sel){
+    const u=U[s.id],from=trailFrom(s.id);if(yf<from)continue;
+    const pts=trailPts(u,from,yf);if(pts.length<2)continue;
+    let d='';for(let i=0;i<pts.length;i++)d+=(i?'L':'M')+pts[i][0].toFixed(1)+' '+pts[i][1].toFixed(1);
+    se('path',{class:'trail t'+s.slot+(s.id===S.active?' act':''),d:d},gTrail);
+    for(const p of pts)if(p[2]%10===0&&p[2]!==pts[0][2])se('circle',{class:'f'+s.slot,cx:p[0],cy:p[1],r:1.7},gTrail);
+    se('circle',{class:'start t'+s.slot,cx:pts[0][0],cy:pts[0][1],r:3.4},gTrail);
+    if(s.id===S.active){
+      evItems.push({key:'e'+s.id+from,x:pts[0][0],y:pts[0][1],r:4,text:String(pts[0][2]),optional:true});
+      if(F[s.id])for(const [ey] of F[s.id].ev){
+        if(ey>yf||ey<=from)continue;const a=val(u,X.k,ey),b=val(u,Yy.k,ey);if(!(a===a&&b===b))continue;
+        const px=sx(a),py=sy(b);se('circle',{class:'ev f'+s.slot,cx:px,cy:py,r:3.4},gTrail);
+        dots.push({key:'e'+s.id+ey,x:px,y:py,r:3.4});
+        evItems.push({key:'e'+s.id+ey,x:px,y:py,r:4,text:String(ey),optional:true});
+      }
+    }
+  }
+  /* labels */
+  gLab.textContent='';
+  labs.sort((a,b)=>a.pri-b.pri||a.y-b.y);
+  for(const l of labs){l.w=tw(l.text,(l.bold?'700 ':'400 ')+'12px '+bodyFont)+4;l.h=15}
+  for(const l of evItems){l.w=tw(l.text,'9.5px monospace')+6;l.h=11}
+  const rects=[];
+  const placed=placeLabels(labs,rects,dots).concat(placeLabels(evItems,rects,dots));
+  for(const p of placed){
+    const it=p.it,r=p.r,cx=(r[0]+r[2])/2,cy=(r[1]+r[3])/2;
+    if(p.far&&!it.optional){const ex=Math.max(r[0],Math.min(it.x,r[2])),ey=Math.max(r[1],Math.min(it.y,r[3]));se('line',{class:'leader',x1:it.x,y1:it.y,x2:ex,y2:ey},gLab)}
+    const t=se('text',{class:it.optional?'evlab':'lab'+(it.bold?' b':''),x:cx,y:cy+(it.optional?3.4:4.2),'text-anchor':'middle'},gLab);t.textContent=it.text;
+  }
+  /* quadrant counts */
+  const names=[X.lo+' · '+Yy.hi,X.hi+' · '+Yy.hi,X.lo+' · '+Yy.lo,X.hi+' · '+Yy.lo];
+  const qd=$('quad');let here=-1;
+  if(S.active&&U[S.active].on){const u=U[S.active];here=(u.vy>=Yy.mid?0:2)+(u.vx>=X.mid?1:0)}
+  for(let i=0;i<4;i++){const c=qd.children[i];c.firstChild.textContent=names[i];c.lastChild.textContent=q[i];c.className=i===here?'here':''}
+  G.q=q;G.qn=names;
+}
+function nearest(mx,my){let b=null,bd=24;for(const u of HIT){const d=Math.hypot(u.px-mx,u.py-my)-u.pr-(u.feat||slotOf(u.id)?5:0);if(d<bd){bd=d;b=u}}return b}
+function evPos(e){const r=svg.getBoundingClientRect(),k=G.W/r.width;return [(e.clientX-r.left)*k,(e.clientY-r.top)*k,r]}
+let tipTimer=0;
+function showTip(u,r){
+  const X=M[S.x],Yy=M[S.y];tip.textContent='';
+  he('b',null,u.n,tip);
+  he('span',null,Math.floor(S.yf)+' 年',tip);
+  he('span',null,X.name+' '+X.fmt(u.vx),tip);he('span',null,Yy.name+' '+Yy.fmt(u.vy),tip);
+  he('em',null,!slotOf(u.id)?'点一下看它的轨迹':S.active===u.id?'再点一下移除':'点一下查看详情',tip);
+  tip.hidden=false;
+  const k=r.width/G.W,px=u.px*k,py=u.py*k,tw_=tip.offsetWidth,th=tip.offsetHeight;
+  let lx=px+14,ly=py-th-10;if(lx+tw_>r.width-4)lx=px-tw_-14;if(lx<4)lx=4;if(ly<4)ly=py+14;
+  tip.style.left=lx+'px';tip.style.top=ly+'px';
+  hov.setAttribute('cx',u.px);hov.setAttribute('cy',u.py);hov.setAttribute('r',u.pr+3);hov.setAttribute('visibility','visible');
+}
+function hideTip(){tip.hidden=true;hov.setAttribute('visibility','hidden')}
+svg.addEventListener('pointermove',e=>{if(e.pointerType==='touch')return;const [mx,my,r]=evPos(e),u=nearest(mx,my);svg.style.cursor=u?'pointer':'';if(u)showTip(u,r);else hideTip()});
+svg.addEventListener('pointerleave',hideTip);
+svg.addEventListener('click',e=>{const [mx,my,r]=evPos(e),u=nearest(mx,my);if(!u){hideTip();return}tap(u.id);if(U[u.id].on)showTip(U[u.id],r);clearTimeout(tipTimer);tipTimer=setTimeout(hideTip,2200)});
+
+/* ---------- lens + note ---------- */
+const lensrow=$('lensrow');
+for(const l of LENS){const b=he('button',{class:'lens',type:'button','aria-pressed':'false'},null,lensrow);b.appendChild(document.createTextNode(l.name));he('small',null,l.tag,b);b.addEventListener('click',()=>setLens(l.id));l.btn=b}
+function setLens(id){
+  const l=LENS.find(l=>l.id===id);S.lens=id;S.sel=[];l.sel.forEach(addSel);S.active=l.sel[0];
+  S.x='cap';S.y='acc';stop();S.yf=Y1;
+  $('selx').value=S.x;$('sely').value=S.y;
+  for(const o of LENS)o.btn.setAttribute('aria-pressed',o.id===id?'true':'false');
+  drawStatic();selectionChanged();yearChanged();
+}
+function renderNote(){
+  const l=LENS.find(l=>l.id===S.lens),n=$('note');n.textContent='';
+  const h=he('h2',null,l.title,n);he('span',null,l.tag+' · '+l.name,h);
+  he('p',null,l.text,n);
+  const c=he('div',{class:'chips'},null,n);
+  for(const id of l.members){const s=slotOf(id),b=he('button',{class:'chip',type:'button','aria-pressed':s?'true':'false'},null,c);if(s)b.setAttribute('data-slot',s);he('i',null,null,b);b.appendChild(document.createTextNode(U[id].n));b.addEventListener('click',()=>tap(id))}
+  if(l.swap){const b=he('button',{class:'linkbtn',type:'button'},S.x==='gdp'?'横轴换回国家能力':'横轴换成经济发展',c);b.addEventListener('click',()=>{setAxis('x',S.x==='gdp'?'cap':'gdp')})}
+}
+
+/* ---------- axes ---------- */
+for(const ax of ['x','y']){const s=$('sel'+ax);for(const k in M)he('option',{value:k},M[k].name,s);s.addEventListener('change',()=>setAxis(ax,s.value))}
+function setAxis(ax,k){
+  const other=ax==='x'?'y':'x';if(S[other]===k)S[other]=S[ax];S[ax]=k;
+  $('selx').value=S.x;$('sely').value=S.y;drawStatic();draw();renderNote();renderDetail();renderTable();
+}
+
+/* ---------- time ---------- */
+const slider=$('year'),yrEl=$('yr');
+const eras=$('eras');
+for(const [y,t] of ERAS){const b=he('button',{class:'era',type:'button'},null,eras);he('b',null,String(y),b);if(t)b.appendChild(document.createTextNode(t));b.addEventListener('click',()=>{stop();S.yf=y;yearChanged()});b._y=y}
+slider.addEventListener('input',()=>{stop();S.yf=+slider.value;yearChanged()});
+let raf=0,last=0;
+function tick(ts){if(!S.playing)return;const dt=Math.min(.1,(ts-last)/1000);last=ts;S.yf=Math.min(Y1,S.yf+dt*11);yearChanged();if(S.yf>=Y1){stop();return}raf=requestAnimationFrame(tick)}
+function stop(){if(!S.playing)return;S.playing=false;cancelAnimationFrame(raf);S.yf=Math.round(S.yf);setPlayIcon();yearChanged()}
+function setPlayIcon(){$('playico').firstElementChild.setAttribute('d',S.playing?'M2 1h4v12H2zM8 1h4v12H8z':'M2 1l11 6-11 6z');$('play').setAttribute('aria-label',S.playing?'暂停':'播放')}
+$('play').addEventListener('click',()=>{
+  if(S.playing){stop();return}
+  if(S.yf>=Y1){const fs=S.sel.map(s=>trailFrom(s.id));S.yf=fs.length?Math.min.apply(null,fs):1900}
+  S.playing=true;setPlayIcon();last=performance.now();raf=requestAnimationFrame(tick);
+});
+let lastInt=-1;
+function yearChanged(){
+  const yi=Math.floor(S.yf);
+  if(yi!==lastInt){lastInt=yi;yrEl.textContent=yi;slider.value=yi;for(const b of eras.children)b.classList.toggle('on',b._y===yi);updateDetailYear();if($('tbl').open)renderTable()}
+  draw();
+}
+
+/* ---------- panel ---------- */
+const COMP=[['T','t','领土控制'],['a','a','行政公正'],['f','f','财税来源'],['m','m','文官选拔']];
+let MINI=null;
+function selectionChanged(){syncLayers();renderNote();renderPicked();renderDetail();draw();if($('tbl').open)renderTable()}
+function renderPicked(){
+  const p=$('picked');p.textContent='';
+  for(const s of S.sel){const w=he('span',{class:'pick'+(s.id===S.active?' on':''),'data-slot':s.slot},null,p);
+    const b=he('button',{type:'button'},null,w);he('i',null,null,b);b.appendChild(document.createTextNode(U[s.id].n));b.addEventListener('click',()=>{S.active=s.id;selectionChanged()});
+    const x=he('button',{type:'button',class:'x','aria-label':'移除'+U[s.id].n},'×',w);x.addEventListener('click',()=>{removeSel(s.id);selectionChanged()})}
+  const sel=he('select',{id:'addsel','aria-label':'添加国家'},null,p);he('option',{value:''},'添加国家…',sel);
+  const og1=he('optgroup',{label:'书中案例'},null,sel);for(const id of FEAT.concat('WLD'))he('option',{value:id},U[id].n,og1);
+  const rest=Object.keys(U).filter(id=>!F[id]).sort((a,b)=>U[a].n.localeCompare(U[b].n,'zh-Hans-CN'));
+  const og2=he('optgroup',{label:'其他国家和地区'},null,sel);for(const id of rest)if(U[id].e===Y1)he('option',{value:id},U[id].n,og2);
+  const og3=he('optgroup',{label:'历史上的政治体'},null,sel);for(const id of rest)if(U[id].e<Y1)he('option',{value:id},U[id].n+'（至 '+U[id].e+'）',og3);
+  sel.addEventListener('change',()=>{if(sel.value){const id=sel.value;if(!slotOf(id))addSel(id);S.active=id;if(S.yf>U[id].e){S.yf=U[id].e}selectionChanged();yearChanged()}});
+}
+function sec(title,parent){const s=he('div',{class:'sec'},null,parent);he('h3',null,title,s);return s}
+function renderDetail(){
+  const d=$('detail');d.textContent='';MINI=null;
+  if(!S.active){he('p',{class:'empty'},'点图上任意一个圆点，或从上面的名单里选一个国家，这里会显示它的轨迹和故事。',d);return}
+  const id=S.active,u=U[id],f=F[id],slot=slotOf(id);
+  const h=he('h2',{class:'cname'},null,d);const dot=he('i',null,null,h);dot.style.background='var(--s'+slot+')';h.appendChild(document.createTextNode(u.n));
+  if(f)he('small',null,f.lec+' · '+CH[f.ch],h);
+  if(f){he('p',{class:'q'},f.q,d);const ul=he('ul',{class:'pts'},null,d);for(const p of f.pts)he('li',null,p,ul)}
+  else he('p',{class:'empty'},'这个国家没有做案例讲解，这里只有数据。',d);
+  const rd=he('div',{class:'read',id:'read'},null,d);
+  const mini=he('div',{class:'mini',id:'mini'},null,d);
+  buildMini(mini,u,slot,f);
+  if(f){
+    he('p',null,f.origin,sec('缘起',d));
+    const s2=sec('转折',d),ol=he('ul',{class:'evs',id:'evs'},null,s2);
+    for(const [y,t] of f.ev){const li=he('li',null,null,ol),b=he('button',{type:'button'},null,li);he('b',null,String(y),b);he('span',null,t,b);b._y=y;
+      b.addEventListener('click',()=>{stop();S.yf=y;yearChanged();if(window.matchMedia('(max-width:900px)').matches)chartEl.scrollIntoView({behavior:'smooth',block:'center'})})}
+    he('p',null,f.out,sec('结果（截至 2025 年）',d));
+  }
+  if(!u.world){
+    const s4=sec('国家能力的四个分项（当年在各国中的百分位）',d),bw=he('div',{class:'bars',id:'bars'},null,s4);
+    for(const c of COMP){he('span',null,c[2],bw);const tr=he('span',{class:'tr'},null,bw);he('span',{class:'fl'},null,tr).style.display='block';he('span',{class:'nv'},'',bw)}
+    he('p',{class:'cap',id:'terr'},'',s4);
+  }
+  if(f&&f.pairs.length){const s5=sec('拿谁来对照',d),pw=he('div',{class:'pairs'},null,s5);
+    for(const [pid,t] of f.pairs){const b=he('button',{type:'button'},null,pw);he('b',null,U[pid].n,b);b.appendChild(document.createTextNode(t));b.addEventListener('click',()=>{addSel(pid);selectionChanged()})}}
+  updateDetailYear();
+}
+function buildMini(host,u,slot,f){
+  const w=Math.max(240,Math.floor(host.clientWidth||$('panel').clientWidth)),rowH=46,gapR=22,pl=2,pr=44,top=16;
+  const keys=[S.y,S.x],from=Math.max(u.s,f?Math.min(f.from,1900):1900),to=u.e,H=top+rowH*2+gapR+18;
+  const s=se('svg',{viewBox:'0 0 '+w+' '+H,role:'img','aria-label':u.n+'两个维度随时间的变化'},host);
+  const xs=y=>pl+(y-from)/(to-from||1)*(w-pl-pr);
+  const rows=[];
+  keys.forEach((k,i)=>{
+    const m=M[k],y0=top+i*(rowH+gapR),yb=y0+rowH;
+    let conv=v=>v;
+    if(k==='gdp'){let mx=1;for(let y=from;y<=to;y++){const v=val(u,'g',y);if(v===v)mx=Math.max(mx,grel(v))}mx*=1.1;conv=v=>grel(v)/mx}
+    const ys=v=>y0+(1-conv(v))*rowH;
+    const t=se('text',{class:'mt',x:pl,y:y0-5},s);t.textContent=k==='gdp'?'人均收入（美国 = 100%）':m.name;
+    se('line',{class:'mb',x1:pl,x2:w-pr,y1:yb,y2:yb},s);if(k!=='gdp')se('line',{class:'mb',x1:pl,x2:w-pr,y1:ys(m.mid),y2:ys(m.mid)},s);
+    if(f)for(const [ey] of f.ev)if(ey>=from&&ey<=to)se('line',{class:'me',x1:xs(ey),x2:xs(ey),y1:yb,y2:yb+4},s);
+    let d='',pen=false;for(let y=from;y<=to;y++){const v=val(u,m.k,y);if(v===v){d+=(pen?'L':'M')+xs(y).toFixed(1)+' '+ys(v).toFixed(1);pen=true}else pen=false}
+    const p=se('path',{class:'ml',d:d},s);p.style.stroke='var(--s'+slot+')';
+    const dot=se('circle',{class:'md',r:4},s);dot.style.fill='var(--s'+slot+')';
+    const vt=se('text',{class:'mv',x:w-pr+8},s);
+    rows.push({m,ys,dot,vt});
+  });
+  const cur=se('line',{class:'mc',y1:top-2,y2:top+rowH*2+gapR},s);
+  const t1=se('text',{class:'mt',x:pl,y:H-3},s);t1.textContent=from;
+  const t2=se('text',{class:'mt',x:w-pr,y:H-3,'text-anchor':'end'},s);t2.textContent=to;
+  MINI={u,rows,cur,xs,from,to,svg:s,w};
+  const scrub=e=>{const r=s.getBoundingClientRect(),x=(e.clientX-r.left)*w/r.width;const y=Math.round(from+(x-pl)/(w-pl-pr)*(to-from));stop();S.yf=Math.max(from,Math.min(to,y));yearChanged()};
+  let down=false;
+  host.addEventListener('pointerdown',e=>{down=true;try{host.setPointerCapture(e.pointerId)}catch(_){}scrub(e)});
+  host.addEventListener('pointermove',e=>{if(down)scrub(e)});
+  for(const n of ['pointerup','pointercancel','lostpointercapture'])host.addEventListener(n,()=>{down=false});
+}
+function updateDetailYear(){
+  if(!S.active)return;
+  const yi=Math.floor(S.yf),u=U[S.active],X=M[S.x],Yy=M[S.y];
+  const rd=$('read');
+  if(rd){rd.textContent='';
+    const a=val(u,Yy.k,yi),b=val(u,X.k,yi);
+    const s0=he('span',null,yi+' 年',rd);
+    const s1=he('span',null,Yy.name,rd);he('b',null,a===a?Yy.fmt(a):'无数据',s1);
+    const s2=he('span',null,X.name,rd);he('b',null,b===b?X.fmt(b):'无数据',s2);
+    if(a===a&&b===b&&!u.world)he('span',null,'落在 '+(b>=X.mid?X.hi:X.lo)+' · '+(a>=Yy.mid?Yy.hi:Yy.lo),rd);
+  }
+  if(MINI){const yy=Math.max(MINI.from,Math.min(MINI.to,yi)),x=MINI.xs(yy);MINI.cur.setAttribute('x1',x);MINI.cur.setAttribute('x2',x);
+    for(const r of MINI.rows){const v=val(u,r.m.k,yy);if(v===v){r.dot.setAttribute('cx',x);r.dot.setAttribute('cy',r.ys(v));r.dot.setAttribute('visibility','visible');r.vt.setAttribute('y',r.ys(v)+4);r.vt.textContent=r.m.fmt(v)}else{r.dot.setAttribute('visibility','hidden');r.vt.textContent=''}}}
+  const evs=$('evs');
+  if(evs){let nowB=null;for(const li of evs.children){const b=li.firstChild;b.classList.toggle('past',b._y<=yi);b.classList.remove('now');if(b._y<=yi)nowB=b}if(nowB)nowB.classList.add('now')}
+  const bars=$('bars');
+  if(bars){COMP.forEach((c,i)=>{const arr=u.comp[c[1]],v=(yi>=u.s&&yi<=u.e)?arr[yi-u.s]:NaN,fl=bars.children[i*3+1].firstChild,nv=bars.children[i*3+2];
+      if(v===v){fl.style.width=(v*100).toFixed(0)+'%';nv.textContent=Math.round(v*100)+'%'}else{fl.style.width='0';nv.textContent='–'}});
+    const T=(yi>=u.s&&yi<=u.e)?u.comp.T[yi-u.s]:NaN;$('terr').textContent=T===T?'百分位越高，说明这一项在当年各国中排得越靠前。政府实际控制的领土：'+Math.round(T*100)+'%。':'百分位越高，说明这一项在当年各国中排得越靠前。'}
+}
+
+/* ---------- table ---------- */
+function renderTable(){
+  const t=$('table');t.textContent='';const yi=Math.floor(S.yf),X=M[S.x],Yy=M[S.y];
+  const hr=he('tr',null,null,he('thead',null,null,t));
+  for(const h of [yi+' 年','民主问责','国家能力','法治','人均收入（美国=100%）','象限（按当前两轴）'])he('th',null,h,hr);
+  const tb=he('tbody',null,null,t),ids=FEAT.concat('WLD');
+  for(const s of S.sel)if(!ids.includes(s.id))ids.push(s.id);
+  for(const id of ids){const u=U[id],tr=he('tr',null,null,tb);he('td',null,u.n,tr);
+    for(const k of ['acc','cap','rule','gdp']){const v=val(u,M[k].k,yi);he('td',null,v===v?M[k].fmt(v):'–',tr)}
+    const a=val(u,Yy.k,yi),b=val(u,X.k,yi);he('td',null,(a===a&&b===b)?(b>=X.mid?X.hi:X.lo)+' · '+(a>=Yy.mid?Yy.hi:Yy.lo):'–',tr)}
+}
+$('tbl').addEventListener('toggle',()=>{if($('tbl').open)renderTable()});
+
+/* ---------- boot ---------- */
+const qd=$('quad');for(let i=0;i<4;i++){const c=he('div',null,null,qd);he('span',null,'',c);he('b',null,'',c)}
+let rw=0;
+new ResizeObserver(()=>{const w=Math.floor(chartEl.clientWidth);if(w&&w!==rw){rw=w;layout();if(S.active)renderDetail()}}).observe(chartEl);
+setLens('all');
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{for(const k in wcache)delete wcache[k];draw()});
+})();
+</script>
+
+</body>
+</html>
