@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>政治坐标系｜读《可能性的艺术》</title>
-<meta name="description" content="把刘瑜《可能性的艺术》里的两个维度做成一张可以交互的图：179 个国家和地区，1789–2025 年，拖动年份看各国从哪里来、往哪里去。">
+<meta name="description" content="把刘瑜《可能性的艺术》里的两个维度做成一张可以交互的图：177 个国家和地区，1789–2025 年，拖动年份看各国从哪里来、往哪里去。">
 <meta property="og:title" content="政治坐标系｜读《可能性的艺术》">
-<meta property="og:description" content="一本书做成的可交互读物：两根轴，179 个国家和地区，两百多年。">
+<meta property="og:description" content="一本书做成的可交互读物：两根轴，177 个国家和地区，两百多年。">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://miajia.dev/project/the-art-of-possibility/">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -214,7 +214,7 @@ td{font-family:var(--mono);font-size:12.5px} td:first-child,td:last-child{font-f
         <input type="range" id="year" min="1789" max="2025" step="1" value="2025" aria-label="年份">
       </div>
       <div class="eras" id="eras"></div>
-      <div class="quad" id="quad" aria-label="四个象限各有多少国家"></div>
+      <div class="quad" id="quad" aria-label="四个象限各有多少个国家和地区"></div>
       <p class="cap"><span class="key k1"></span>书中案例　<span class="key k2"></span>其他国家和地区　<span class="key k3"></span>&nbsp;世界平均。圆点越大，人均收入越接近美国。点任意圆点看它的轨迹，最多同时对照三个；轨迹上的小点每十年一个。</p>
     </div>
 
@@ -383,7 +383,7 @@ WLD:{ch:1,lec:'第 6–7 讲',q:'“历史终结论”的终结？',pts:['第三
 const FEAT=Object.keys(F).filter(k=>k!=='WLD');
 const LENS=[
  {id:'all',name:'全图',tag:'第 1 讲',title:'从布隆迪到丹麦',members:FEAT.concat('WLD'),sel:['DNK','BDI'],
-  text:'横轴是国家能力，纵轴是民主问责，书的第一讲用这两根轴搭起参照系，丹麦和布隆迪是尺子的两端。往回拖动年份会看到，左上角几乎一直是空的：1900 年没有一个国家落在那里，2025 年也只有 8 个。弱国家很少撑得住强问责。'},
+  text:'横轴是国家能力，纵轴是民主问责，书的第一讲用这两根轴搭起参照系，丹麦和布隆迪是尺子的两端。往回拖动年份会看到，左上角几乎一直是空的：1900 年那里一个也没有，2025 年也只有 8 个。弱国家很少撑得住强问责。'},
  {id:'global',name:'全球视野',tag:'第一章',title:'整个世界往哪边走',members:['WLD','SWE'],sel:['WLD','SWE'],
   text:'这一章讲时代背景：战后的和平、国际格局、全球化的经济后果和文化反弹。世界平均点的轨迹就是这个背景，它在 1974 年后加速向上，2012 年见顶后回落。瑞典是书里讲文化反弹的案例。'},
  {id:'trans',name:'政治转型',tag:'第二章',title:'旧体制退场之后',members:['FRA','EGY','ZAF','IND','IRQ','RUS'],sel:['EGY','ZAF','IRQ'],
@@ -628,7 +628,7 @@ function renderPicked(){
   for(const s of S.sel){const w=he('span',{class:'pick'+(s.id===S.active?' on':''),'data-slot':s.slot},null,p);
     const b=he('button',{type:'button'},null,w);he('i',null,null,b);b.appendChild(document.createTextNode(U[s.id].n));b.addEventListener('click',()=>{S.active=s.id;selectionChanged()});
     const x=he('button',{type:'button',class:'x','aria-label':'移除'+U[s.id].n},'×',w);x.addEventListener('click',()=>{removeSel(s.id);selectionChanged()})}
-  const sel=he('select',{id:'addsel','aria-label':'添加国家'},null,p);he('option',{value:''},'添加国家…',sel);
+  const sel=he('select',{id:'addsel','aria-label':'添加国家或地区'},null,p);he('option',{value:''},'添加国家或地区…',sel);
   const og1=he('optgroup',{label:'书中案例'},null,sel);for(const id of FEAT.concat('WLD'))he('option',{value:id},U[id].n,og1);
   const rest=Object.keys(U).filter(id=>!F[id]).sort((a,b)=>U[a].n.localeCompare(U[b].n,'zh-Hans-CN'));
   const og2=he('optgroup',{label:'其他国家和地区'},null,sel);for(const id of rest)if(U[id].e===Y1)he('option',{value:id},U[id].n,og2);
@@ -638,12 +638,12 @@ function renderPicked(){
 function sec(title,parent){const s=he('div',{class:'sec'},null,parent);he('h3',null,title,s);return s}
 function renderDetail(){
   const d=$('detail');d.textContent='';MINI=null;
-  if(!S.active){he('p',{class:'empty'},'点图上任意一个圆点，或从上面的名单里选一个国家，这里会显示它的轨迹和故事。',d);return}
+  if(!S.active){he('p',{class:'empty'},'点图上任意一个圆点，或从上面的名单里选一个国家或地区，这里会显示它的轨迹和故事。',d);return}
   const id=S.active,u=U[id],f=F[id],slot=slotOf(id);
   const h=he('h2',{class:'cname'},null,d);const dot=he('i',null,null,h);dot.style.background='var(--s'+slot+')';h.appendChild(document.createTextNode(u.n));
   if(f)he('small',null,f.lec+' · '+CH[f.ch],h);
   if(f){he('p',{class:'q'},f.q,d);const ul=he('ul',{class:'pts'},null,d);for(const p of f.pts)he('li',null,p,ul)}
-  else he('p',{class:'empty'},'这个国家没有做案例讲解，这里只有数据。',d);
+  else he('p',{class:'empty'},'这里没有做案例讲解，只有数据。',d);
   const rd=he('div',{class:'read',id:'read'},null,d);
   const mini=he('div',{class:'mini',id:'mini'},null,d);
   buildMini(mini,u,slot,f);
